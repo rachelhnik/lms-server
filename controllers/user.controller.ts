@@ -1,0 +1,133 @@
+require("dotenv").config();
+import { NextFunction, Request, Response } from "express";
+import { CatchAsyncError } from "../middlewares/catchAsyncError";
+import ErrorHandler from "../utils/errorHandler";
+import User, { IUser } from "../models/user.model";
+import jwt, { Secret } from "jsonwebtoken";
+import sendEmail from "../utils/sendEmail";
+import sendToken from "../utils/jwt";
+interface IRegistrationBody {
+  name: string;
+  email: string;
+  password: string;
+  avatar?: string;
+}
+
+export const registerUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, email, password } = req.body;
+
+      const isEmailAlreadyExist = await User.findOne({ email });
+      if (isEmailAlreadyExist) {
+        return next(new ErrorHandler("Email already exist", 400));
+      }
+
+      const user: IRegistrationBody = { name, email, password };
+      const activationData = createActivationData(user);
+
+      const activationCode = activationData.activation_code;
+
+      const data = { user: { name: user.name }, activationCode };
+
+      try {
+        await sendEmail({
+          email: user.email,
+          subject: "Activate your account",
+          template: "activation.mail.ejs",
+          data,
+        });
+        res.status(200).json({
+          success: true,
+          message: `Please check your email: ${user.email} to activate your account .`,
+          activationToken: activationData.activation_token,
+        });
+      } catch (err: any) {
+        return next(new ErrorHandler(err.message, 400));
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+interface IActivationData {
+  activation_token: string;
+  activation_code: string;
+}
+
+export const createActivationData = (
+  user: IRegistrationBody
+): IActivationData => {
+  const activationCode = Math.floor(1000 + Math.random() * 9000).toString();
+  const activationToken = jwt.sign(
+    { user, activationCode },
+    process.env.ACTIVATION_SECRET as Secret,
+    { expiresIn: "5m" }
+  );
+  return { activation_token: activationToken, activation_code: activationCode };
+};
+
+interface IActivationRequest {
+  activationToken: string;
+  activationCode: string;
+}
+
+export const activateUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { activationToken, activationCode } = req.body;
+      const newUser: { user: IUser; activationCode: string } = jwt.verify(
+        activationToken,
+        process.env.ACTIVATION_SECRET as Secret
+      ) as { user: IUser; activationCode: string };
+
+      if (newUser.activationCode !== activationCode) {
+        return next(new ErrorHandler("Invalid activation code", 400));
+      }
+      const { name, email, password } = newUser.user;
+      const isEmailAlreadyExist = await User.findOne({ email });
+      if (isEmailAlreadyExist) {
+        return next(
+          new ErrorHandler("User with this email already exists.", 400)
+        );
+      }
+
+      const user = await User.create({ name, email, password });
+      res.status(200).json({
+        success: true,
+        message: "User successfully created",
+        user: user,
+      });
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 400));
+    }
+  }
+);
+
+interface ILoginRequest {
+  email: string;
+  password: string;
+}
+
+export const LoginUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } = req.body as ILoginRequest;
+
+      const user = await User.findOne({ email }).select("+password");
+
+      if (!user) {
+        return next(new ErrorHandler("User does not exist", 400));
+      }
+
+      const isPasswordMatch = await user.comparePassword(password);
+      if (!isPasswordMatch) {
+        return next(new ErrorHandler("Wrong password", 400));
+      }
+      sendToken(user, 200, res);
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 400));
+    }
+  }
+);
