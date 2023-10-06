@@ -38,7 +38,6 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Please enter your password"],
       select: false,
     },
     avatar: {
@@ -67,12 +66,17 @@ userSchema.pre<IUser>("save", async function (next) {
 });
 
 userSchema.methods.SignAccessToken = async function () {
-  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "");
+  return jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "", {
+    expiresIn: "5m",
+  });
 };
 
 userSchema.methods.SignRefreshToken = async function () {
-  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "");
+  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "", {
+    expiresIn: "3d",
+  });
 };
+
 userSchema.methods.comparePassword = async function (
   enteredPassword: string
 ): Promise<Boolean> {
