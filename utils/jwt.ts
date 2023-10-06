@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { IUser } from "../models/user.model";
+import { redis } from "./redis";
 
 interface ITokenOptions {
   expires: Date;
@@ -9,32 +10,33 @@ interface ITokenOptions {
   sameSite: "lax" | "strict" | "none" | undefined;
 }
 
+const accessTokenExpires = parseInt(
+  process.env.ACCESS_TOKEN_EXPIRES || "300",
+  10
+);
+const refreshTokenExpires = parseInt(
+  process.env.REFRESH_TOKEN_EXPIRES || "1200",
+  10
+);
+
+export const accessTokenOptions: ITokenOptions = {
+  expires: new Date(Date.now() + accessTokenExpires * 60 * 60 * 1000),
+  maxAge: accessTokenExpires * 60 * 60 * 1000,
+  httpOnly: true,
+  sameSite: "lax",
+};
+
+export const refreshTokenOptions: ITokenOptions = {
+  expires: new Date(Date.now() + refreshTokenExpires * 1000),
+  maxAge: refreshTokenExpires * 24 * 60 * 60 * 1000,
+  httpOnly: true,
+  sameSite: "lax",
+};
+
 const sendToken = async (user: IUser, statusCode: number, res: Response) => {
   const accessToken = await user.SignAccessToken();
   const refreshToken = await user.SignRefreshToken();
-
-  const accessTokenExpires = parseInt(
-    process.env.ACCESS_TOKEN_EXPIRES || "300",
-    10
-  );
-  const refreshTokenExpires = parseInt(
-    process.env.REFRESH_TOKEN_EXPIRES || "1200",
-    10
-  );
-
-  const accessTokenOptions: ITokenOptions = {
-    expires: new Date(Date.now() + accessTokenExpires * 1000),
-    maxAge: accessTokenExpires * 1000,
-    httpOnly: true,
-    sameSite: "lax",
-  };
-
-  const refreshTokenOptions: ITokenOptions = {
-    expires: new Date(Date.now() + refreshTokenExpires * 1000),
-    maxAge: refreshTokenExpires * 1000,
-    httpOnly: true,
-    sameSite: "lax",
-  };
+  redis.set(user._id, JSON.stringify(user));
 
   if (process.env.NODE_ENV === "production") {
     accessTokenOptions.secure = true;
