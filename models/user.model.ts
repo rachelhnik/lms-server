@@ -52,7 +52,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    courses: [{ courseId: String }],
+    courses: [{ _id: String }],
   },
   { timestamps: true }
 );

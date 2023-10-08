@@ -308,8 +308,6 @@ export const UpdateProfilePhoto = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { avatar } = req.body;
-      console.log(avatar);
-
       const userId = req.user?._id;
       const user = await User.findById(userId);
       if (!user) {
