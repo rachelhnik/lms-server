@@ -9,7 +9,11 @@ import sendToken, {
   accessTokenOptions,
   refreshTokenOptions,
 } from "../utils/jwt";
-import getUserById from "../services/user.service";
+import {
+  getAllUsersService,
+  getUserById,
+  updateUserRoleService,
+} from "../services/user.service";
 import { redis } from "../utils/redis";
 import cloudinary from "cloudinary";
 interface IRegistrationBody {
@@ -184,6 +188,7 @@ export const UpdateAccessToken = CatchAsyncError(
     req.user = user;
     res.cookie("access_token", accessToken, accessTokenOptions);
     res.cookie("refresh_token", refreshToken, refreshTokenOptions);
+    await redis.set(user._id, JSON.stringify(user), "EX", 604800);
     res.status(200).send({
       success: true,
       user,
@@ -341,6 +346,47 @@ export const UpdateProfilePhoto = CatchAsyncError(
           user,
         });
       }
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 400));
+    }
+  }
+);
+
+export const getAllUsers = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      getAllUsersService(res);
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 400));
+    }
+  }
+);
+
+export const updateUserRole = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id, role } = req.body;
+      updateUserRoleService(res, id, role);
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 400));
+    }
+  }
+);
+
+export const deleteUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      if (!user) {
+        return next(new ErrorHandler("User doesn't exist", 400));
+      }
+      await user.deleteOne({ id });
+      await redis.del(id);
+      res.status(200).json({
+        success: true,
+        message: "User deleted successfully",
+      });
     } catch (err: any) {
       return next(new ErrorHandler(err.message, 400));
     }

@@ -7,11 +7,14 @@ import {
   UpdateProfilePhoto,
   UpdateUserInfo,
   activateUser,
+  deleteUser,
+  getAllUsers,
   getUserInfo,
   registerUser,
   socialAuth,
+  updateUserRole,
 } from "../controllers/user.controller";
-import { isAuthenticated } from "../middlewares/auth";
+import { authorizeRoles, isAuthenticated } from "../middlewares/auth";
 
 export const userRouter = express.Router();
 
@@ -25,3 +28,21 @@ userRouter.post("/social-login", socialAuth);
 userRouter.put("/update-user", isAuthenticated, UpdateUserInfo);
 userRouter.put("/update-password", isAuthenticated, UpdatePassword);
 userRouter.post("/update-profile-photo", isAuthenticated, UpdateProfilePhoto);
+userRouter.get(
+  "/get-all-users",
+  isAuthenticated,
+  authorizeRoles("Admin"),
+  getAllUsers
+);
+userRouter.put(
+  "/update-user-role",
+  isAuthenticated,
+  authorizeRoles("Admin"),
+  updateUserRole
+);
+userRouter.delete(
+  "/delete-user/:id",
+  isAuthenticated,
+  authorizeRoles("Admin"),
+  deleteUser
+);

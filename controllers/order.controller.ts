@@ -4,7 +4,10 @@ import { CatchAsyncError } from "../middlewares/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
 import User, { IUser } from "../models/user.model";
 import Course from "../models/course.model";
-import confirmNewOrder from "../services/order.service";
+import {
+  confirmNewOrder,
+  getAllOrdersService,
+} from "../services/order.service";
 import ejs from "ejs";
 import path from "path";
 import sendEmail from "../utils/sendEmail";
@@ -76,6 +79,16 @@ export const createOrder = CatchAsyncError(
       confirmNewOrder(orderData, res, next);
     } catch (err: any) {
       return next(new ErrorHandler(err.message, 404));
+    }
+  }
+);
+
+export const getAllOrders = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      getAllOrdersService(res);
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 400));
     }
   }
 );
