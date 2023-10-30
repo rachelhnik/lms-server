@@ -29,6 +29,7 @@ export const registerUser = CatchAsyncError(
       const { name, email, password } = req.body;
 
       const isEmailAlreadyExist = await User.findOne({ email });
+      console.log("isExist", isEmailAlreadyExist);
       if (isEmailAlreadyExist) {
         return next(new ErrorHandler("Email already exist", 400));
       }
@@ -248,7 +249,6 @@ export const UpdateUserInfo = CatchAsyncError(
       if (user && email) {
         const emailToChange = user.email;
         const isEmailExist = await User.find({ emailToChange });
-        console.log(isEmailExist);
         if (!isEmailExist) {
           return next(new ErrorHandler("Email doesn't exist", 400));
         }
@@ -334,6 +334,7 @@ export const UpdateProfilePhoto = CatchAsyncError(
             folder: "avatars",
             width: 150,
           });
+
           user.avatar = {
             publicId: myCloud.public_id,
             url: myCloud.secure_url,
