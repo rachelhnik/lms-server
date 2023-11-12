@@ -190,11 +190,7 @@ export const UpdateAccessToken = CatchAsyncError(
     res.cookie("access_token", accessToken, accessTokenOptions);
     res.cookie("refresh_token", refreshToken, refreshTokenOptions);
     await redis.set(user._id, JSON.stringify(user), "EX", 604800);
-    res.status(200).send({
-      success: true,
-      user,
-      accessToken,
-    });
+    next();
   }
 );
 
@@ -279,6 +275,10 @@ export const UpdatePassword = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { oldPassword, newPassword } = req.body;
+      if (oldPassword === newPassword) {
+        console.log("HIIII");
+        return next(new ErrorHandler("Please enter a different password", 400));
+      }
       const userId = req.user?._id;
       const user = await User.findById(userId).select("+password");
 
