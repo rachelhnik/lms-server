@@ -44,7 +44,7 @@ export const editCourse = CatchAsyncError(
         "+thumbnail"
       );
       const thumbnail = req.body.thumbnail;
-      if (thumbnail) {
+      if (thumbnail && !thumbnail.url.startsWith("https")) {
         await cloudinary.v2.uploader.destroy(
           //@ts-ignore
           courseToUpdate?.thumbnail.public_id
@@ -68,6 +68,7 @@ export const editCourse = CatchAsyncError(
       );
       res.status(201).json({ success: true, updatedCourse });
     } catch (err: any) {
+      console.log("error", err);
       return next(new ErrorHandler(err.message, 400));
     }
   }
