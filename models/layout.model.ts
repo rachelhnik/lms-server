@@ -3,6 +3,7 @@ import mongoose, { Document, model, Schema } from "mongoose";
 interface IFaqItem extends Document {
   question: string;
   answer: string;
+  active: boolean;
 }
 
 interface ICategory extends Document {
@@ -28,6 +29,7 @@ interface ILayout extends Document {
 const faqSchema = new Schema<IFaqItem>({
   question: { type: String },
   answer: { type: String },
+  active: { type: Boolean },
 });
 
 const categorySchema = new Schema<ICategory>({

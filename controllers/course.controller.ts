@@ -17,6 +17,7 @@ export const uploadCourse = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = req.body;
+
       const thumbnail = data.thumbnail;
       if (thumbnail) {
         const myCloud = await cloudinary.v2.uploader.upload(thumbnail, {
@@ -30,6 +31,7 @@ export const uploadCourse = CatchAsyncError(
       }
       createCourse(data, res, next);
     } catch (err: any) {
+      console.log("error", err);
       return next(new ErrorHandler(err.message, 400));
     }
   }

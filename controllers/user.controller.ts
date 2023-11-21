@@ -29,7 +29,7 @@ export const registerUser = CatchAsyncError(
       const { name, email, password } = req.body;
 
       const isEmailAlreadyExist = await User.findOne({ email });
-      console.log("isExist", isEmailAlreadyExist);
+
       if (isEmailAlreadyExist) {
         return next(new ErrorHandler("Email already exist", 400));
       }
@@ -181,12 +181,15 @@ export const UpdateAccessToken = CatchAsyncError(
       process.env.ACCESS_TOKEN || "",
       { expiresIn: "5m" }
     );
+
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.REFRESH_TOKEN || "",
       { expiresIn: "3d" }
     );
+
     req.user = user;
+
     res.cookie("access_token", accessToken, accessTokenOptions);
     res.cookie("refresh_token", refreshToken, refreshTokenOptions);
     await redis.set(user._id, JSON.stringify(user), "EX", 604800);
@@ -276,7 +279,6 @@ export const UpdatePassword = CatchAsyncError(
     try {
       const { oldPassword, newPassword } = req.body;
       if (oldPassword === newPassword) {
-        console.log("HIIII");
         return next(new ErrorHandler("Please enter a different password", 400));
       }
       const userId = req.user?._id;
@@ -294,7 +296,7 @@ export const UpdatePassword = CatchAsyncError(
       user.password = newPassword;
       await user.save();
       await redis.set(req.user?._id, JSON.stringify(user));
-      console.log(user);
+
       res.status(200).json({
         success: true,
         user,

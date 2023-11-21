@@ -8,20 +8,24 @@ export const createLayout = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { type } = req.body;
+      console.log("TYpE", type);
       const isTypeAlreadyExist = await Layout.findOne({ type });
       if (isTypeAlreadyExist) {
         return next(new ErrorHandler(`${type} already exists`, 400));
       }
       if (type === "FAQ") {
         const { faq } = req.body;
+        console.log("req", req.body);
         const faqItems = await Promise.all(
           faq.map(async (item: any) => {
             return {
               question: item.question,
               answer: item.answer,
+              active: item.active,
             };
           })
         );
+
         await Layout.create({ type: type, faq: faqItems });
       } else if (type === "Category") {
         const { categories } = req.body;
@@ -61,6 +65,7 @@ export const editLayout = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { type } = req.body;
+
       const isTypeAlreadyExist = await Layout.findOne({ type });
       if (!isTypeAlreadyExist) {
         return next(new ErrorHandler(`${type} does not exist`, 400));
@@ -73,10 +78,12 @@ export const editLayout = CatchAsyncError(
             return {
               question: item.question,
               answer: item.answer,
+              active: false,
             };
           })
         );
-        await Layout.findByIdAndUpdate(faqItem?._id, {
+
+        const data = await Layout.findByIdAndUpdate(faqItem?._id, {
           type: type,
           faq: faqItems,
         });
@@ -104,13 +111,19 @@ export const editLayout = CatchAsyncError(
             bannerItem.banner.image.public_id
           );
         }
-        const myCloud = await cloudinary.v2.uploader.upload(image, {
-          folder: "Banner",
-        });
+        const myCloud = image.startsWith("https")
+          ? bannerItem
+          : ((await cloudinary.v2.uploader.upload(image, {
+              folder: "Banner",
+            })) as any);
         const banner = {
           image: {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
+            public_id: image.startsWith("https")
+              ? bannerItem?.banner.image.public_id
+              : myCloud?.public_id,
+            url: image.startsWith("https")
+              ? bannerItem?.banner.image.url
+              : myCloud.secure_url,
           },
           title: title,
           subtitle: subtitle,
@@ -124,6 +137,7 @@ export const editLayout = CatchAsyncError(
         .status(201)
         .json({ success: true, message: "Layout updated successfully" });
     } catch (err: any) {
+      console.log("error", err);
       return next(new ErrorHandler(err.message, 400));
     }
   }
@@ -132,7 +146,7 @@ export const editLayout = CatchAsyncError(
 export const getLayoutByType = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { type } = req.body;
+      const { type } = req.params;
       const layout = await Layout.findOne({ type });
       res.status(201).json({ success: true, layout });
     } catch (err: any) {

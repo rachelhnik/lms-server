@@ -13,14 +13,14 @@ layoutRouter.post(
   "/create",
   UpdateAccessToken,
   isAuthenticated,
-  authorizeRoles("Admin"),
+  authorizeRoles("admin"),
   createLayout
 );
 layoutRouter.put(
   "/edit",
   UpdateAccessToken,
   isAuthenticated,
-  authorizeRoles("Admin"),
+  authorizeRoles("admin"),
   editLayout
 );
-layoutRouter.get("/get-layout", UpdateAccessToken, getLayoutByType);
+layoutRouter.get("/get-layout/:type", UpdateAccessToken, getLayoutByType);
