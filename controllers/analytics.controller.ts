@@ -10,6 +10,7 @@ export const getUsersAnalytics = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const users = await generateLast12MonthsData(User);
+      console.log("user", users);
       res.status(200).json({ success: true, users });
     } catch (err: any) {
       return next(new ErrorHandler(err.message, 400));

@@ -11,6 +11,6 @@ orderRouter.get(
   "/get-all-orders",
   UpdateAccessToken,
   isAuthenticated,
-  authorizeRoles("Admin"),
+  authorizeRoles("admin"),
   getAllOrders
 );

@@ -11,20 +11,20 @@ export const analyticRouter = express.Router();
 analyticRouter.get(
   "/get-users-analytics",
   isAuthenticated,
-  authorizeRoles("Admin"),
+  authorizeRoles("admin"),
   getUsersAnalytics
 );
 
 analyticRouter.get(
   "/get-courses-analytics",
   isAuthenticated,
-  authorizeRoles("Admin"),
+  authorizeRoles("admin"),
   getCourseAnalytics
 );
 
 analyticRouter.get(
   "/get-orders-analytics",
   isAuthenticated,
-  authorizeRoles("Admin"),
+  authorizeRoles("admin"),
   getOrdersAnalytics
 );
