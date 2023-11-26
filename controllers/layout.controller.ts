@@ -8,7 +8,7 @@ export const createLayout = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { type } = req.body;
-      console.log("TYpE", type);
+
       const isTypeAlreadyExist = await Layout.findOne({ type });
       if (isTypeAlreadyExist) {
         return next(new ErrorHandler(`${type} already exists`, 400));
@@ -111,7 +111,8 @@ export const editLayout = CatchAsyncError(
             bannerItem.banner.image.public_id
           );
         }
-        const myCloud = image.startsWith("https")
+
+        const myCloud = image.includes("cloudinary")
           ? bannerItem
           : ((await cloudinary.v2.uploader.upload(image, {
               folder: "Banner",
