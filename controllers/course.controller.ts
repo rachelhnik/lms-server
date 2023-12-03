@@ -152,6 +152,7 @@ export const addQuestion = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { question, courseId, contentId }: IAddQuestionData = req.body;
+
       const course = await Course.findById(courseId);
 
       const courseContent = course?.courseData.find(
@@ -175,8 +176,9 @@ export const addQuestion = CatchAsyncError(
       });
 
       await course?.save();
+
       res.status(200).json({
-        message: true,
+        success: true,
         course,
       });
     } catch (err: any) {
@@ -196,6 +198,7 @@ export const addAnswer = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { answer, courseId, contentId, questionId }: IAddAnswer = req.body;
+
       const course = await Course.findById(courseId);
 
       if (!mongoose.Types.ObjectId.isValid(contentId)) {
@@ -232,6 +235,7 @@ export const addAnswer = CatchAsyncError(
           title: "Your question was answered",
           message: `You have an answer to you question in course ${course?.name}`,
         });
+        res.status(200).json({ success: true, course });
       } else {
         const data = {
           name: question.user.name,
