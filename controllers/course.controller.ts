@@ -12,6 +12,7 @@ import sendEmail from "../utils/sendEmail";
 import { IUser } from "../models/user.model";
 import Notification from "../models/nodification.model";
 import axios from "axios";
+import NotificationModel from "../models/nodification.model";
 
 export const uploadCourse = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -224,6 +225,8 @@ export const addAnswer = CatchAsyncError(
       const newAnswer: any = {
         user: req.user,
         answer,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       question.questionReplies.push(newAnswer);
@@ -286,6 +289,7 @@ export const addReview = CatchAsyncError(
         );
       }
       const course = await Course.findById(courseId);
+
       const reviewData: any = {
         user: req.user,
         rating,
@@ -304,11 +308,13 @@ export const addReview = CatchAsyncError(
       }
       await course?.save();
 
-      const notification = {
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800);
+
+      await Notification.create({
+        user: req.user?._id,
         title: "New review received",
         message: `${req.user?.name} has given a review in ${course?.name}`,
-      };
-
+      });
       res.status(200).json({
         message: true,
         course,
@@ -342,12 +348,16 @@ export const replyToReview = CatchAsyncError(
       const replyData: any = {
         user: req.user,
         comment,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
       if (!review.commentReplies) {
         review.commentReplies = [];
       }
       review.commentReplies?.push(replyData);
       await course.save();
+
+      await redis.set(courseId, JSON.stringify(course), "EX", 604800);
       res.status(200).send({
         success: true,
         course,
