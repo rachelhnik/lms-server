@@ -3,7 +3,7 @@ import { NextFunction } from "express";
 import { CatchAsyncError } from "../middlewares/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
 import User, { IUser } from "../models/user.model";
-import Course from "../models/course.model";
+import Course, { ICourse } from "../models/course.model";
 import {
   confirmNewOrder,
   getAllOrdersService,
@@ -34,7 +34,7 @@ export const createOrder = CatchAsyncError(
 
       //@ts-ignore
       const user = await User.findById(req.user._id);
-      const course = await Course.findById(courseId);
+      const course: ICourse = (await Course.findById(courseId)) as ICourse;
 
       const isCourseAlreadyExist = user?.courses.find(
         //@ts-ignore
@@ -82,9 +82,9 @@ export const createOrder = CatchAsyncError(
       user?.courses.push(course?._id);
       await redis.set(req.user?._id, JSON.stringify(user));
       await user?.save();
-      if (course?.purchased) {
-        course.purchased += 1;
-      }
+
+      course.purchased += course.purchased + 1;
+
       await course?.save();
 
       await Notification.create({
