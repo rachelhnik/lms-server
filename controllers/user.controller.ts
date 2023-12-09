@@ -21,12 +21,13 @@ interface IRegistrationBody {
   email: string;
   password: string;
   avatar?: string;
+  role?: string;
 }
 
 export const registerUser = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, email, password } = req.body;
+      const { name, email, password, role } = req.body;
 
       const isEmailAlreadyExist = await User.findOne({ email });
 
@@ -34,7 +35,7 @@ export const registerUser = CatchAsyncError(
         return next(new ErrorHandler("Email already exist", 400));
       }
 
-      const user: IRegistrationBody = { name, email, password };
+      const user: IRegistrationBody = { name, email, password, role };
       const activationData = createActivationData(user);
 
       const activationCode = activationData.activation_code;
@@ -96,7 +97,7 @@ export const activateUser = CatchAsyncError(
       if (newUser.activationCode !== activationCode) {
         return next(new ErrorHandler("Invalid activation code", 400));
       }
-      const { name, email, password } = newUser.user;
+      const { name, email, password, role } = newUser.user;
       const isEmailAlreadyExist = await User.findOne({ email });
       if (isEmailAlreadyExist) {
         return next(
@@ -104,7 +105,7 @@ export const activateUser = CatchAsyncError(
         );
       }
 
-      const user = await User.create({ name, email, password });
+      const user = await User.create({ name, email, password, role });
       res.status(200).json({
         success: true,
         message: "User successfully created",

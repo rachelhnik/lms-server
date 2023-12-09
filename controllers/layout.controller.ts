@@ -15,7 +15,7 @@ export const createLayout = CatchAsyncError(
       }
       if (type === "FAQ") {
         const { faq } = req.body;
-        console.log("req", req.body);
+
         const faqItems = await Promise.all(
           faq.map(async (item: any) => {
             return {
@@ -26,7 +26,7 @@ export const createLayout = CatchAsyncError(
           })
         );
 
-        await Layout.create({ type: type, faq: faqItems });
+        await Layout.create({ type: type, faq: [] });
       } else if (type === "Category") {
         const { categories } = req.body;
         const categoryItems = await Promise.all(
@@ -79,6 +79,8 @@ export const editLayout = CatchAsyncError(
               question: item.question,
               answer: item.answer,
               active: false,
+              userId: item.userId,
+              amount: item.amount,
             };
           })
         );
@@ -94,6 +96,7 @@ export const editLayout = CatchAsyncError(
           categories.map(async (item: any) => {
             return {
               title: item.title,
+              userId: item.userId,
             };
           })
         );

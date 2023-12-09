@@ -4,10 +4,14 @@ interface IFaqItem extends Document {
   question: string;
   answer: string;
   active: boolean;
+  userId?: string;
+  amount: number;
 }
 
 interface ICategory extends Document {
   title: string;
+  original: boolean;
+  userId?: string;
 }
 
 interface IBannerImage extends Document {
@@ -30,10 +34,14 @@ const faqSchema = new Schema<IFaqItem>({
   question: { type: String },
   answer: { type: String },
   active: { type: Boolean },
+  userId: { type: String },
+  amount: { type: Number, default: 0 },
 });
 
 const categorySchema = new Schema<ICategory>({
   title: { type: String },
+  original: { type: Boolean, default: false },
+  userId: { type: String },
 });
 
 const bannerImageSchema = new Schema<IBannerImage>({

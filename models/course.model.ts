@@ -38,6 +38,7 @@ export interface ICourse extends Document {
   description: string;
   price: number;
   estimatedPrice?: number;
+  userId: string;
   thumbnail: object;
   tags: string;
   level: string;
@@ -107,6 +108,7 @@ const courseSchema = new Schema<ICourse>(
         type: String,
       },
     },
+    userId: { type: String, required: true },
     categories: { type: String, required: true },
     tags: { type: String, required: true },
     level: { type: String, required: true },
