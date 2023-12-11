@@ -45,13 +45,7 @@ courseRouter.post(
   isAuthenticated,
   addQuestion
 );
-courseRouter.post(
-  "/add-answer",
-  UpdateAccessToken,
-  isAuthenticated,
-  authorizeRoles("admin"),
-  addAnswer
-);
+courseRouter.post("/add-answer", UpdateAccessToken, isAuthenticated, addAnswer);
 courseRouter.post(
   "/add-review/:id",
   UpdateAccessToken,

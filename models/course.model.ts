@@ -19,6 +19,10 @@ interface ILink extends Document {
   url: string;
 }
 
+interface IPurchasedUser extends Document {
+  userId: string;
+}
+
 interface ICourseData extends Document {
   title: string;
   description: string;
@@ -49,6 +53,7 @@ export interface ICourse extends Document {
   courseData: ICourseData[];
   ratings?: number;
   purchased: number;
+  purchasedUsers?: string[];
 }
 
 const reviewSchema = new Schema<IReview>(
@@ -119,6 +124,7 @@ const courseSchema = new Schema<ICourse>(
     courseData: [courseDataSchema],
     ratings: { type: Number, default: 0 },
     purchased: { type: Number, default: 0 },
+    purchasedUsers: [String],
   },
   { timestamps: true }
 );

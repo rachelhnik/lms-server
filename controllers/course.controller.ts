@@ -12,7 +12,6 @@ import sendEmail from "../utils/sendEmail";
 import { IUser } from "../models/user.model";
 import Notification from "../models/nodification.model";
 import axios from "axios";
-import NotificationModel from "../models/nodification.model";
 
 export const uploadCourse = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -69,6 +68,7 @@ export const editCourse = CatchAsyncError(
         },
         { new: true }
       );
+      redis.set(courseId, JSON.stringify(updatedCourse), "EX", 604776);
       res.status(201).json({ success: true, updatedCourse });
     } catch (err: any) {
       console.log("error", err);
@@ -82,6 +82,7 @@ export const getSingleCourse = CatchAsyncError(
     try {
       const courseId = req.params.id;
       const isCacheExist = await redis.get(courseId);
+
       if (isCacheExist) {
         const course = JSON.parse(isCacheExist);
         res.status(200).json({
@@ -126,9 +127,10 @@ export const getCourseByUser = CatchAsyncError(
     try {
       const courseId = req.params.id;
       const userCoursesList = req.user?.courses;
-      const isCourseExist = userCoursesList?.find(
-        (course: any) => course._id.toString() === courseId
-      );
+      const isCourseExist =
+        userCoursesList?.find(
+          (course: any) => course._id.toString() === courseId
+        ) || req.user?.role === "admin";
       if (!isCourseExist) {
         return next(
           new ErrorHandler("Course doesn't exist in purchased list", 400)
@@ -171,7 +173,8 @@ export const addQuestion = CatchAsyncError(
       courseContent.questions.push(newQuestion);
 
       await Notification.create({
-        user: req.user?._id,
+        userId: req.user?._id,
+        courseId: course?._id,
         title: "New question received",
         message: `Your have a new question in ${course?.name}`,
       });
@@ -232,11 +235,12 @@ export const addAnswer = CatchAsyncError(
       question.questionReplies.push(newAnswer);
       await course?.save();
 
-      if (req.user?._id === question.user._id) {
+      if (req.user?._id === question.user._id && req.user?.role !== "admin") {
         await Notification.create({
-          user: req.user?._id,
-          title: "Your question was answered",
-          message: `You have an answer to you question in course ${course?.name}`,
+          userId: req.user?._id,
+          courseId: course?._id,
+          title: "The question was answered",
+          message: `You have an answer to a question in course ${course?.name}`,
         });
         res.status(200).json({ success: true, course });
       } else {
@@ -311,7 +315,8 @@ export const addReview = CatchAsyncError(
       await redis.set(courseId, JSON.stringify(course), "EX", 604800);
 
       await Notification.create({
-        user: req.user?._id,
+        userId: req.user?._id,
+        courseId: course?._id,
         title: "New review received",
         message: `${req.user?.name} has given a review in ${course?.name}`,
       });
@@ -358,6 +363,14 @@ export const replyToReview = CatchAsyncError(
       await course.save();
 
       await redis.set(courseId, JSON.stringify(course), "EX", 604800);
+
+      await Notification.create({
+        userId: req.user?._id,
+        courseId: course?._id,
+        title: "New reply to your review received",
+        message: `${req.user?.name} has given a reply to review in ${course?.name}`,
+      });
+
       res.status(200).send({
         success: true,
         course,

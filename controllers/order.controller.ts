@@ -84,11 +84,14 @@ export const createOrder = CatchAsyncError(
       await user?.save();
 
       course.purchased += course.purchased + 1;
+      course.purchasedUsers?.push(user?._id);
 
       await course?.save();
+      await redis.set(courseId, JSON.stringify(course));
 
       await Notification.create({
-        user: user?._id,
+        userId: user?._id,
+        courseId: course?._id,
         title: "new order",
         message: `You have a new order in ${course?.name}`,
       });
@@ -102,7 +105,7 @@ export const createOrder = CatchAsyncError(
 export const getAllOrders = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      getAllOrdersService(res);
+      getAllOrdersService(req, res);
     } catch (err: any) {
       return next(new ErrorHandler(err.message, 400));
     }

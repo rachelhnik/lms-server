@@ -10,10 +10,17 @@ import { orderRouter } from "./routes/order.route";
 import { notificationRouter } from "./routes/notification.route";
 import { analyticRouter } from "./routes/analytics.route";
 import { layoutRouter } from "./routes/layout.route";
+import { rateLimit } from "express-rate-limit";
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/courses", courseRouter);
 app.use("/api/v1/orders", orderRouter);
@@ -27,6 +34,8 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
     message: "API is working",
   });
 });
+
+app.use(limiter);
 
 app.use("*", (req: Request, res: Response, next: NextFunction) => {
   const error = new Error(`Route ${req.originalUrl} not found`) as any;

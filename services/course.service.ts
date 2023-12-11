@@ -1,10 +1,12 @@
 import { Response } from "express";
 import { CatchAsyncError } from "../middlewares/catchAsyncError";
 import Course from "../models/course.model";
+import { redis } from "../utils/redis";
 
 export const createCourse = CatchAsyncError(
   async (data: any, res: Response) => {
     const newCourse = await Course.create(data);
+    redis.set(newCourse._id, JSON.stringify(newCourse), "EX", 604776);
     res.status(201).json({
       success: true,
       newCourse,

@@ -5,6 +5,7 @@ interface INotification extends Document {
   status: string;
   message: string;
   userId: string;
+  courseId: string;
 }
 
 const NotificationSchema = new Schema<INotification>(
@@ -19,6 +20,14 @@ const NotificationSchema = new Schema<INotification>(
       default: "unread",
     },
     message: {
+      type: String,
+      required: true,
+    },
+    userId: {
+      type: String,
+      required: true,
+    },
+    courseId: {
       type: String,
       required: true,
     },

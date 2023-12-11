@@ -3,11 +3,16 @@ import { CatchAsyncError } from "../middlewares/catchAsyncError";
 import ErrorHandler from "../utils/errorHandler";
 import Notification from "../models/nodification.model";
 import cron from "node-cron";
+import Course from "../models/course.model";
 
 export const getNotifications = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const notifications = await Notification.find().sort({ createdAt: -1 });
+      const coursesByAdmin = await Course.find({ userId: req.user?._id });
+      const coursesIds = coursesByAdmin.map((data) => data?._id);
+      const notifications = await Notification.find({
+        courseId: { $in: coursesIds },
+      }).sort({ createdAt: -1 });
       res.status(201).json({ success: true, notifications });
     } catch (err: any) {
       return next(new ErrorHandler(err.message, 400));
