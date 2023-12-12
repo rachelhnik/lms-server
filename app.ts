@@ -14,7 +14,12 @@ import { rateLimit } from "express-rate-limit";
 
 app.use(express.json({ limit: "50mb" }));
 app.use(cookieParser());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  cors({
+    origin: ["https://lms-client-haruhnik.vercel.app"],
+    credentials: true,
+  })
+);
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 100,
