@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.userRouter = void 0;
+const express_1 = __importDefault(require("express"));
+const user_controller_1 = require("../controllers/user.controller");
+const auth_1 = require("../middlewares/auth");
+exports.userRouter = express_1.default.Router();
+exports.userRouter.post("/registration", user_controller_1.registerUser);
+exports.userRouter.post("/activation", user_controller_1.activateUser);
+exports.userRouter.post("/login-user", user_controller_1.LoginUser);
+exports.userRouter.get("/logout-user", auth_1.isAuthenticated, user_controller_1.LogoutUser);
+exports.userRouter.get("/update-accessToken", auth_1.isAuthenticated, user_controller_1.UpdateAccessToken);
+exports.userRouter.get("/iuser", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, user_controller_1.getUserInfo);
+exports.userRouter.post("/social-login", user_controller_1.socialAuth);
+exports.userRouter.put("/update-user", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, user_controller_1.UpdateUserInfo);
+exports.userRouter.put("/update-password", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, user_controller_1.UpdatePassword);
+exports.userRouter.put("/update-profile-photo", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, user_controller_1.UpdateProfilePhoto);
+exports.userRouter.get("/get-all-users", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, (0, auth_1.authorizeRoles)("admin"), user_controller_1.getAllUsers);
+exports.userRouter.put("/update-user-role", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, (0, auth_1.authorizeRoles)("admin"), user_controller_1.updateUserRole);
+exports.userRouter.delete("/delete-user/:id", user_controller_1.UpdateAccessToken, auth_1.isAuthenticated, (0, auth_1.authorizeRoles)("admin"), user_controller_1.deleteUser);

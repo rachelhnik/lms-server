@@ -2,14 +2,16 @@
   "name": "server",
   "version": "1.0.0",
   "description": "\"LMS backend server\"",
-  "main": "index.js",
+  "main": "build/server.js",
   "type": "commonjs",
   "engines": {
     "node": "18.x"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "ts-node-dev  server.ts"
+    "dev": "ts-node-dev  server.ts",
+    "start": "node build/server.js",
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",
