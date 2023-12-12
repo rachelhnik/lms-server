@@ -33,7 +33,7 @@ export const createOrder = CatchAsyncError(
       }
 
       //@ts-ignore
-      const user = await User.findById(req.user._id);
+      const user = (await User.findById(req.user._id)) as any;
       const course: ICourse = (await Course.findById(courseId)) as ICourse;
 
       const isCourseAlreadyExist = user?.courses.find(
@@ -95,7 +95,8 @@ export const createOrder = CatchAsyncError(
         title: "new order",
         message: `You have a new order in ${course?.name}`,
       });
-      confirmNewOrder(orderData, res, next);
+      //@ts-ignore
+      confirmNewOrder(orderData, user, res);
     } catch (err: any) {
       return next(new ErrorHandler(err.message, 404));
     }

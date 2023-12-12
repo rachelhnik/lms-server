@@ -4,11 +4,13 @@ import Order from "../models/order.model";
 import Course from "../models/course.model";
 
 export const confirmNewOrder = CatchAsyncError(
-  async (orderData: any, res: Response, next: NextFunction) => {
+  async (orderData: any, user: any, res: Response) => {
     const newOrder = await Order.create(orderData);
+    console.log("new", newOrder, user);
     res.status(201).json({
       success: true,
       order: newOrder,
+      user: user,
     });
   }
 );
